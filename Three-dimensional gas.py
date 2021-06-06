@@ -8,8 +8,8 @@ population = 100
 Helium_diam_absolut = 2.1 * 10 ** (-10)  # meters
 meters_in_pixel = Helium_diam_absolut / 8  # 2,625 * 10 ** (-11)
 Helium_diam_relative_max = 8
-dt = 10 ** (-4)  # seconds
-initial_velocity = 10000  # pixels / real second
+dt = 10 ** (-13)  # seconds
+initial_velocity = 1000  # meters / second
 
 width = 800
 height = 800
@@ -42,16 +42,16 @@ class Molecule:
 molecules = [Molecule(random.randint(0, width) * meters_in_pixel,
                       random.randint(0, height) * meters_in_pixel,
                       random.randint(0, depth) * meters_in_pixel,
-                      [random.randint(-initial_velocity, initial_velocity) * meters_in_pixel,
-                       random.randint(-initial_velocity, initial_velocity) * meters_in_pixel,
-                       random.randint(-initial_velocity, initial_velocity) * meters_in_pixel],
+                      [random.randint(-initial_velocity, initial_velocity),
+                       random.randint(-initial_velocity, initial_velocity),
+                       random.randint(-initial_velocity, initial_velocity)],
                       6.64 * 10 ** (-27)) for i in range(population)]
 
 
 def render():
     screen.fill((20, 5, 40))
     for molecule in molecules:
-        constant = 255 / ((meters_in_pixel * initial_velocity) ** 2 * 3) ** 0.5
+        constant = 255 / (initial_velocity ** 2 * 3) ** 0.5
         red = constant * abs((molecule.velocity[0] ** 2 + molecule.velocity[1] ** 2 + molecule.velocity[2] ** 2) ** (1 / 2))
         if red > 255:
             red = 255
