@@ -14,6 +14,7 @@ running = True
 
 pygame.display.set_caption(" Nazi game")
 
+
 class point():
     def __init__(self, x, y, elastic):
         self.x = x
@@ -31,7 +32,7 @@ class point():
         pygame.draw.rect(screen, color, (int(x), int(y), 4, 4))
 
 
-class wall():
+class wall:
     def __init__(self, p1, p2):
         self.body = pymunk.Body(body_type=pymunk.Body.STATIC)
         self.shape = pymunk.Segment(self.body, p1, p2, 5)
