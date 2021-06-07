@@ -3,16 +3,16 @@ import random
 
 pygame.init()
 
-k1 = 10
-k2 = 10
-k3 = 1
+k1 = 5
+k2 = 5
+k3 = 5
 population = k1 * k2 * k3
 
 Helium_diam_absolut = 2.1 * 10 ** (-11)  # meters
-meters_in_pixel = 2.1 * 10 ** (-11)  # 2,625 * 10 ** (-11)
+meters_in_pixel = 1 * 10 ** (-9)  # 2,625 * 10 ** (-11)
 Helium_diam_relative_max = 8
-dt = 5*10 ** (-13)  # seconds
-initial_velocity = 100  # meters / second
+dt = 10 ** (-11)  # seconds
+initial_velocity = 1000  # meters / second
 k_bolzman = 1.38 * 10 ** (-23)
 eps_potential = 10.22 * k_bolzman  # Joules
 sigma_potential = 2.556 * 10 ** (-10)  # meters
@@ -51,16 +51,21 @@ class Molecule:
 
 molecules = []
 
+num1x = width / k1
+num1y = height / k2
+num1z = depth / k3
+
 for i in range(k1):
     for j in range(k2):
         for k in range(k3):
-            molecules.append(Molecule((35 + 70 * i) * meters_in_pixel,
-                                      (35 + 70 * j) * meters_in_pixel,
-                                      35 * meters_in_pixel,
+            molecules.append(Molecule((num1x / 2 + num1x * i) * meters_in_pixel,
+                                      (num1y / 2 + num1y * j) * meters_in_pixel,
+                                      (num1z / 2 + num1z * k) * meters_in_pixel,
                                       [random.uniform(-initial_velocity, initial_velocity),
                                        random.uniform(-initial_velocity, initial_velocity),
                                        random.uniform(-initial_velocity, initial_velocity)],
                                       mass))
+
 
 # molecules = [Molecule(random.randint(0, width) * meters_in_pixel,
 #                       random.randint(0, height) * meters_in_pixel,
@@ -95,7 +100,7 @@ def update():
 
         if molecule.x > width * meters_in_pixel or molecule.x < 0:
             molecule.velocity[0] *= -1
-            pendulum += abs(2*molecule.velocity[0] * mass)
+            pendulum += abs(2 * molecule.velocity[0] * mass)
 
         if molecule.y > height * meters_in_pixel or molecule.y < 0:
             molecule.velocity[1] *= -1
@@ -117,7 +122,7 @@ def update():
                 #                         / ((distance(molecule, another_m)) ** 3)
                 dist = distance(molecule, another_m)
                 force = eps_potential * (
-                            (-48 * sigma_potential ** 12) / dist ** 13 + (24 * sigma_potential ** 6) / dist ** 7)
+                        (-48 * sigma_potential ** 12) / dist ** 13 + (24 * sigma_potential ** 6) / dist ** 7)
                 molecule.velocity[0] += dt * ((molecule.x - another_m.x) * force / dist) / mass
                 molecule.velocity[1] += dt * ((molecule.y - another_m.y) * force / dist) / mass
                 molecule.velocity[2] += dt * ((molecule.z - another_m.z) * force / dist) / mass
@@ -132,6 +137,7 @@ def update():
 time = 0
 pressure = 0
 cycles = 0
+flag = 50
 while running:
     cycles += 1
     time += dt
@@ -139,14 +145,14 @@ while running:
         if event.type == pygame.QUIT:
             running = False
     speed = update()
-    T = (speed * mass / (3 * k_bolzman))
-    print(time, "T =", T, "K")
     render()
-    if cycles % 10 == 0:
-        pressure = pendulum / (10 * dt * (height*width + height*depth + width*depth))
+    if cycles % flag == 0:
+        T = (speed * mass / (3 * k_bolzman))
+        print("Time:", time, "T =", T, "K")
+        pressure = pendulum / (flag * dt * 2 * (height * width + height * depth + width * depth) * meters_in_pixel ** 2)
         pendulum = 0
-    print(pressure, "Pa, theory: ", k_bolzman * T * population/(width*height*depth))
+        print(pressure, "Pa, theory: ", k_bolzman * T * population / ((width * height * depth) * meters_in_pixel ** 3))
 
     pygame.display.update()
     clock.tick(FPS)
-    #dt = 2*meters_in_pixel/(speed)**(1/2)
+    # dt = 2*meters_in_pixel/(speed)**(1/2)
