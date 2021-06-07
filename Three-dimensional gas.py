@@ -9,10 +9,10 @@ k3 = 5
 population = k1 * k2 * k3
 
 Helium_diam_absolut = 2.1 * 10 ** (-11)  # meters
-meters_in_pixel = 1 * 10 ** (-9)  # 2,625 * 10 ** (-11)
+meters_in_pixel = 2 * 10 ** (-11)  # 2,625 * 10 ** (-11)
 Helium_diam_relative_max = 8
-dt = 10 ** (-11)  # seconds
-initial_velocity = 1000  # meters / second
+dt = 10 ** (-13)  # seconds
+initial_velocity = 100  # meters / second
 k_bolzman = 1.38 * 10 ** (-23)
 eps_potential = 10.22 * k_bolzman  # Joules
 sigma_potential = 2.556 * 10 ** (-10)  # meters
@@ -111,7 +111,9 @@ def update():
             pendulum += abs(2 * molecule.velocity[2] * mass)
 
         for another_m in molecules:
-            if another_m.x != molecule.x and another_m.y != molecule.y and another_m.z != molecule.z:
+            if abs(another_m.x - molecule.x) > meters_in_pixel \
+                    or abs(another_m.y - molecule.y) > meters_in_pixel \
+                    or abs(another_m.z - molecule.z) > meters_in_pixel:
                 # molecule.velocity[0] += G * another_m.m * (another_m.x - molecule.x) * dt \
                 #                         / ((distance(molecule, another_m)) ** 3)
                 #
@@ -121,11 +123,11 @@ def update():
                 # molecule.velocity[2] += G * another_m.m * (another_m.z - molecule.z) * dt \
                 #                         / ((distance(molecule, another_m)) ** 3)
                 dist = distance(molecule, another_m)
-                force = eps_potential * (
-                        (-48 * sigma_potential ** 12) / dist ** 13 + (24 * sigma_potential ** 6) / dist ** 7)
-                molecule.velocity[0] += dt * ((molecule.x - another_m.x) * force / dist) / mass
-                molecule.velocity[1] += dt * ((molecule.y - another_m.y) * force / dist) / mass
-                molecule.velocity[2] += dt * ((molecule.z - another_m.z) * force / dist) / mass
+                force = (24 * eps_potential * sigma_potential ** 6) / (dist ** 7) * (
+                    (((-2) * (sigma_potential ** 6)) / (dist ** 6)) + 1)
+                molecule.velocity[0] += dt * ((another_m.x - molecule.x) * force / dist) / mass
+                molecule.velocity[1] += dt * ((another_m.y - molecule.y) * force / dist) / mass
+                molecule.velocity[2] += dt * ((another_m.z - molecule.z) * force / dist) / mass
 
     for molecule in molecules:
         molecule.x += molecule.velocity[0] * dt
@@ -151,7 +153,7 @@ while running:
         print("Time:", time, "T =", T, "K")
         pressure = pendulum / (flag * dt * 2 * (height * width + height * depth + width * depth) * meters_in_pixel ** 2)
         pendulum = 0
-        print(pressure, "Pa, theory: ", k_bolzman * T * population / ((width * height * depth) * meters_in_pixel ** 3))
+        print(pressure, "Pa, theory: ", k_bolzman * T * population / ((width * height * depth) * meters_in_pixel ** 3), 'Pa')
 
     pygame.display.update()
     clock.tick(FPS)
