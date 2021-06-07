@@ -3,13 +3,13 @@ import random
 
 pygame.init()
 
-population = 40
+population = 125
 
-Helium_diam_absolut = 2.1 * 10 ** (-10)  # meters
-meters_in_pixel = 2 * 10 ** (-5)  # 2,625 * 10 ** (-11)
+Helium_diam_absolut = 2.1 * 10 ** (-11)  # meters
+meters_in_pixel = 2.1 * 10 ** (-11)  # 2,625 * 10 ** (-11)
 Helium_diam_relative_max = 8
-dt = 10 ** (-5)  # seconds
-initial_velocity = 100  # meters / second
+dt = 10 ** (-11)  # seconds
+initial_velocity = 2  # meters / second
 k_bolzman = 1.38 * 10 ** (-23)
 eps_potential = 10.22 * k_bolzman  # Joules
 sigma_potential = 2.556 * 10 ** (-10)  # meters
@@ -17,7 +17,7 @@ mass = 6.64 * 10 ** (-27)  # kg
 
 width = 800
 height = 800
-depth = 800
+depth = 70
 
 screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
@@ -40,17 +40,31 @@ class Molecule:
     def draw(self, color):
         x, y = self.x, self.y
         plus = int(255 - self.z / meters_in_pixel / 5)
+        # print(int(x / meters_in_pixel), int(y / meters_in_pixel))
         pygame.draw.circle(screen, (color[0], 0, color[2]), (int(x / meters_in_pixel), int(y / meters_in_pixel)),
                            int(6 - self.z / meters_in_pixel / 200))
 
 
-molecules = [Molecule(random.randint(0, width) * meters_in_pixel,
-                      random.randint(0, height) * meters_in_pixel,
-                      random.randint(0, depth) * meters_in_pixel,
-                      [random.randint(-initial_velocity, initial_velocity),
-                       random.randint(-initial_velocity, initial_velocity),
-                       random.randint(-initial_velocity, initial_velocity)],
-                      mass) for i in range(population)]
+molecules = []
+
+for i in range(11):
+    for j in range(11):
+        for k in range(1):
+            molecules.append(Molecule((35 + 70 * i) * meters_in_pixel,
+                                      (35 + 70 * j) * meters_in_pixel,
+                                      35 * meters_in_pixel,
+                                      [random.randint(-initial_velocity, initial_velocity),
+                                       random.randint(-initial_velocity, initial_velocity),
+                                       random.randint(-initial_velocity, initial_velocity)],
+                                      mass))
+
+# molecules = [Molecule(random.randint(0, width) * meters_in_pixel,
+#                       random.randint(0, height) * meters_in_pixel,
+#                       random.randint(0, depth) * meters_in_pixel,
+#                       [random.randint(-initial_velocity, initial_velocity),
+#                        random.randint(-initial_velocity, initial_velocity),
+#                        random.randint(-initial_velocity, initial_velocity)],
+#                       mass) for i in range(population)]
 
 
 def render():
@@ -72,7 +86,17 @@ def distance(molecule1, molecule2):
 def update():
     average_speed = 0
     for molecule in molecules:
-        average_speed += molecule.velocity[0]**2 + molecule.velocity[1]**2 + molecule.velocity[2]**2
+        average_speed += molecule.velocity[0] ** 2 + molecule.velocity[1] ** 2 + molecule.velocity[2] ** 2
+
+        if molecule.x > width * meters_in_pixel or molecule.x < 0:
+            molecule.velocity[0] *= -1
+
+        if molecule.y > height * meters_in_pixel or molecule.y < 0:
+            molecule.velocity[1] *= -1
+
+        if molecule.z > depth * meters_in_pixel or molecule.z < 0:
+            molecule.velocity[2] *= -1
+
         for another_m in molecules:
             if another_m.x != molecule.x and another_m.y != molecule.y and another_m.z != molecule.z:
                 # molecule.velocity[0] += G * another_m.m * (another_m.x - molecule.x) * dt \
@@ -84,31 +108,24 @@ def update():
                 # molecule.velocity[2] += G * another_m.m * (another_m.z - molecule.z) * dt \
                 #                         / ((distance(molecule, another_m)) ** 3)
                 dist = distance(molecule, another_m)
-                force = eps_potential * (-48 * sigma_potential ** 12) / dist ** 13 + (24 * sigma_potential ** 6) / dist ** 7
+                force = eps_potential * (
+                            (-48 * sigma_potential ** 12) / dist ** 13 + (24 * sigma_potential ** 6) / dist ** 7)
                 molecule.velocity[0] += dt * ((molecule.x - another_m.x) * force / dist) / mass
                 molecule.velocity[1] += dt * ((molecule.y - another_m.y) * force / dist) / mass
                 molecule.velocity[2] += dt * ((molecule.z - another_m.z) * force / dist) / mass
 
-        if molecule.x > width * meters_in_pixel or molecule.x < 0:
-            molecule.velocity[0] *= -1
-
-        if molecule.y > height * meters_in_pixel or molecule.y < 0:
-            molecule.velocity[1] *= -1
-
-        if molecule.z > depth * meters_in_pixel or molecule.z < 0:
-            molecule.velocity[2] *= -1
     for molecule in molecules:
         molecule.x += molecule.velocity[0] * dt
         molecule.y += molecule.velocity[1] * dt
         molecule.z += molecule.velocity[2] * dt
-    return average_speed/population
+    return average_speed / population
 
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    print("T =", round(update()*mass / (3 * k_bolzman)), "K")
+    print("T =", (update() * mass / (3 * k_bolzman)), "K")
     render()
 
     pygame.display.update()
