@@ -5,7 +5,7 @@ import pymunk
 pygame.init()
 
 population = 0
-right_population = 300
+right_population = 1000
 screen = pygame.display.set_mode((800, 800))
 clock = pygame.time.Clock()
 FPS = 90
@@ -29,7 +29,7 @@ class point():
 
     def draw(self, color):
         x, y = self.body.position
-        pygame.draw.rect(screen, color, (int(x), int(y), 4, 4))
+        pygame.draw.circle(screen, color, (int(x), int(y)), 3)
 
 
 class wall:
